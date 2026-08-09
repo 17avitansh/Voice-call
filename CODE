@@ -1,0 +1,180 @@
+{
+  "name": "Free Voice Lead Qualifier - No API",
+  "nodes": [
+    {
+      "parameters": {
+        "path": "free-voice-agent",
+        "responseMode": "responseNode",
+        "options": {}
+      },
+      "id": "10c0273d-64e1-4543-a717-78a95013d7db",
+      "name": "Open Voice Agent",
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2,
+      "position": [
+        -520,
+        -120
+      ],
+      "webhookId": "cb2b08c2-240d-48e3-b949-7d4d32728f47"
+    },
+    {
+      "parameters": {
+        "jsCode": "return [{json:{html:\"<!doctype html>\\n<html lang=\\\"en\\\"><head><meta charset=\\\"utf-8\\\"><meta name=\\\"viewport\\\" content=\\\"width=device-width,initial-scale=1\\\">\\n<title>Free Voice Lead Qualifier</title><style>\\n:root{--bg:#07111f;--card:#101d30;--line:#243751;--accent:#59e1c3;--text:#eef6ff;--muted:#9fb2c8;--danger:#ff758c}*{box-sizing:border-box}body{margin:0;background:radial-gradient(circle at top,#12304b 0,var(--bg) 55%);color:var(--text);font-family:Inter,system-ui,sans-serif;min-height:100vh}.wrap{max-width:900px;margin:auto;padding:28px}.brand{color:var(--accent);font-weight:800;letter-spacing:.08em}.card{background:rgba(16,29,48,.94);border:1px solid var(--line);border-radius:20px;padding:24px;margin-top:18px;box-shadow:0 20px 60px #0006}h1{font-size:clamp(28px,5vw,48px);margin:10px 0}p{color:var(--muted);line-height:1.55}.grid{display:grid;grid-template-columns:1fr 1fr;gap:12px}label{font-size:13px;color:var(--muted)}input{width:100%;margin-top:6px;background:#081525;border:1px solid var(--line);color:var(--text);padding:13px;border-radius:10px;font-size:15px}button{border:0;border-radius:12px;padding:13px 18px;font-weight:750;cursor:pointer;background:var(--accent);color:#04251f;font-size:15px}button.secondary{background:#223650;color:var(--text)}button:disabled{opacity:.45;cursor:not-allowed}.actions{display:flex;gap:10px;flex-wrap:wrap;margin-top:18px}.agent{display:flex;gap:14px;align-items:center}.orb{width:54px;height:54px;border-radius:50%;background:var(--accent);box-shadow:0 0 0 8px #59e1c322}.listening .orb{animation:pulse 1s infinite}@keyframes pulse{50%{box-shadow:0 0 0 18px #59e1c300}}#question{font-size:20px;color:var(--text);margin:4px 0}.transcript{height:210px;overflow:auto;background:#081525;border-radius:12px;padding:14px;margin-top:16px;border:1px solid var(--line)}.line{padding:8px 0;border-bottom:1px solid #ffffff0d}.ai{color:var(--accent)}.user{color:#ffd37a}.hidden{display:none}.pill{display:inline-block;border:1px solid var(--line);padding:6px 10px;border-radius:99px;color:var(--muted);font-size:12px}.score{font-size:48px;font-weight:850;color:var(--accent)}pre{white-space:pre-wrap;background:#081525;padding:14px;border-radius:12px;color:#cce1f5}@media(max-width:650px){.grid{grid-template-columns:1fr}.wrap{padding:16px}.card{padding:18px}}\\n</style></head><body><div class=\\\"wrap\\\"><div class=\\\"brand\\\">N8N • ZERO-COST PROTOTYPE</div>\\n<section id=\\\"setup\\\" class=\\\"card\\\"><span class=\\\"pill\\\">No API key • No phone charge</span><h1>Voice Lead Qualifier</h1><p>This demo conducts a browser voice interview and sends the structured result to your local n8n workflow. It does not place a telephone call.</p><div class=\\\"grid\\\"><label>Name<input id=\\\"name\\\" placeholder=\\\"Avitansh\\\" required></label><label>Company<input id=\\\"company\\\" placeholder=\\\"Company name\\\"></label><label>Email<input id=\\\"email\\\" type=\\\"email\\\" placeholder=\\\"name@example.com\\\"></label><label>Initial requirement<input id=\\\"request\\\" placeholder=\\\"What do you want to automate?\\\"></label></div><div class=\\\"actions\\\"><button id=\\\"start\\\">Start voice interview</button></div><p id=\\\"support\\\"></p></section>\\n<section id=\\\"interview\\\" class=\\\"card hidden\\\"><div id=\\\"agent\\\" class=\\\"agent\\\"><div class=\\\"orb\\\"></div><div><span class=\\\"pill\\\" id=\\\"state\\\">Agent speaking</span><div id=\\\"question\\\"></div></div></div><div id=\\\"transcript\\\" class=\\\"transcript\\\"></div><div class=\\\"actions\\\"><button id=\\\"listen\\\">Answer with microphone</button><button id=\\\"repeat\\\" class=\\\"secondary\\\">Repeat question</button><button id=\\\"skip\\\" class=\\\"secondary\\\">Skip</button></div><p id=\\\"hint\\\">Allow microphone access when Chrome asks.</p></section>\\n<section id=\\\"result\\\" class=\\\"card hidden\\\"><span class=\\\"pill\\\">Qualification complete</span><h2>Lead score</h2><div class=\\\"score\\\"><span id=\\\"score\\\">0</span>/100</div><pre id=\\\"report\\\"></pre><div class=\\\"actions\\\"><button id=\\\"restart\\\" class=\\\"secondary\\\">Run another demo</button></div></section></div>\\n<script>\\nconst questions=[\\n {key:'service_interest',q:'Are you actively interested in using AI or automation for your business?',kind:'bool'},\\n {key:'motivation',q:'What problem are you most motivated to solve?',kind:'text'},\\n {key:'urgency',q:'When would you like to implement a solution?',kind:'text'},\\n {key:'past_experience',q:'Have you used AI or automation tools before? Please describe your experience.',kind:'text'},\\n {key:'budget',q:'What approximate budget range have you considered for this project?',kind:'text'},\\n {key:'paid_intent',q:'If the solution fits your needs, are you willing to pay for implementation?',kind:'bool'}\\n];\\nconst SR=window.SpeechRecognition||window.webkitSpeechRecognition;let i=0,answers={},log=[],current='';\\nconst $=id=>document.getElementById(id);$('support').textContent=SR?'Best in Google Chrome. Microphone permission is required.':'Speech recognition is unavailable in this browser. Open this page in Google Chrome.';$('start').disabled=!SR;\\nfunction add(role,text){log.push({role,text});const d=document.createElement('div');d.className='line '+(role==='Agent'?'ai':'user');d.textContent=role+': '+text;$('transcript').appendChild(d);$('transcript').scrollTop=99999}\\nfunction speak(text){speechSynthesis.cancel();const u=new SpeechSynthesisUtterance(text);u.lang='en-IN';u.rate=.95;u.onstart=()=>{$('state').textContent='Agent speaking';$('agent').classList.remove('listening')};u.onend=()=>{$('state').textContent='Ready for your answer'};speechSynthesis.speak(u)}\\nfunction ask(){if(i>=questions.length)return finish();current=questions[i].q;$('question').textContent=current;add('Agent',current);speak(current)}\\nfunction yesNo(t){const s=t.toLowerCase();if(/\\b(yes|yeah|yep|sure|definitely|absolutely|willing|interested)\\b/.test(s))return true;if(/\\b(no|nope|not interested|not willing)\\b/.test(s))return false;return null}\\nfunction capture(text){add('Lead',text);answers[questions[i].key]=questions[i].kind==='bool'?(yesNo(text)??text):text;i++;setTimeout(ask,500)}\\nfunction listen(){const r=new SR();r.lang='en-IN';r.interimResults=false;r.maxAlternatives=1;r.onstart=()=>{$('state').textContent='Listening…';$('agent').classList.add('listening');$('listen').disabled=true};r.onresult=e=>capture(e.results[0][0].transcript);r.onerror=e=>{$('hint').textContent='Microphone error: '+e.error+'. Try again.'};r.onend=()=>{$('agent').classList.remove('listening');$('listen').disabled=false};r.start()}\\nfunction calc(){let s=0;if(answers.service_interest===true)s+=25;if(answers.paid_intent===true)s+=25;const b=(answers.budget||'').toLowerCase();if(/lakh|₹|rs|inr|thousand|d/.test(b))s+=20;const u=(answers.urgency||'').toLowerCase();if(/immediate|as soon|week|month|30|60|90|quarter/.test(u))s+=20;if((answers.motivation||'').length>15)s+=10;return s}\\nasync function finish(){const lead={name:$('name').value.trim(),company:$('company').value.trim(),email:$('email').value.trim(),initial_request:$('request').value.trim()};const payload={created_at:new Date().toISOString(),status:'Complete',lead,qualification:{...answers,qualification_score:calc()},transcript:log};$('interview').classList.add('hidden');$('result').classList.remove('hidden');$('score').textContent=payload.qualification.qualification_score;$('report').textContent=JSON.stringify(payload,null,2);try{const res=await fetch(location.origin+'/webhook/free-voice-agent-result',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(payload)});if(!res.ok)throw new Error('HTTP '+res.status);$('report').textContent+='\\n\\nSaved to n8n execution history.'}catch(e){$('report').textContent+='\\n\\nCould not send result to n8n: '+e.message+'. Make sure the workflow is active.'}}\\n$('start').onclick=()=>{if(!$('name').value.trim())return alert('Please enter the lead name.');$('setup').classList.add('hidden');$('interview').classList.remove('hidden');const intro='Hello '+$('name').value.trim()+'. I am an AI voice assistant running as a free prototype. I will ask six short qualification questions.';add('Agent',intro);speak(intro);setTimeout(ask,4500)};$('listen').onclick=listen;$('repeat').onclick=()=>speak(current);$('skip').onclick=()=>capture('Skipped');$('restart').onclick=()=>location.reload();\\n</script></body></html>\"}}];"
+      },
+      "id": "1de05d2a-bd50-4e65-9600-818929569ae4",
+      "name": "Build Voice Interface",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        -280,
+        -120
+      ]
+    },
+    {
+      "parameters": {
+        "respondWith": "text",
+        "responseBody": "={{ $json.html }}",
+        "options": {
+          "responseCode": 200,
+          "responseHeaders": {
+            "entries": [
+              {
+                "name": "Content-Type",
+                "value": "text/html; charset=utf-8"
+              },
+              {
+                "name": "Permissions-Policy",
+                "value": "microphone=(self)"
+              }
+            ]
+          }
+        }
+      },
+      "id": "e3bc0613-0cdd-4973-86b9-3e2069728165",
+      "name": "Show Voice Agent",
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1.4,
+      "position": [
+        -20,
+        -120
+      ]
+    },
+    {
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "free-voice-agent-result",
+        "responseMode": "responseNode",
+        "options": {}
+      },
+      "id": "aa18ab55-8cbd-41f3-b953-92931a8529aa",
+      "name": "Receive Qualification",
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2,
+      "position": [
+        -520,
+        160
+      ],
+      "webhookId": "785dafad-b8cb-421e-93ae-e860d4075ca7"
+    },
+    {
+      "parameters": {
+        "jsCode": "const b=$json.body??$json; const q=b.qualification??{}; return [{json:{received_at:new Date().toISOString(),status:b.status??'Complete',name:b.lead?.name??'',company:b.lead?.company??'',email:b.lead?.email??'',initial_request:b.lead?.initial_request??'',service_interest:q.service_interest??null,motivation:q.motivation??'',urgency:q.urgency??'',past_experience:q.past_experience??'',budget:q.budget??'',paid_intent:q.paid_intent??null,qualification_score:q.qualification_score??0,transcript:b.transcript??[]}}];"
+      },
+      "id": "396ce574-5312-4033-9985-927916530582",
+      "name": "Structure Lead Report",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        -280,
+        160
+      ]
+    },
+    {
+      "parameters": {
+        "respondWith": "json",
+        "responseBody": "={{ { ok: true, message: \"Qualification saved in this n8n execution\", lead: $json.name, score: $json.qualification_score } }}",
+        "options": {
+          "responseCode": 200
+        }
+      },
+      "id": "7b61e8a1-cd92-40bc-8e67-3de0fabffbcb",
+      "name": "Confirm Result",
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1.4,
+      "position": [
+        -20,
+        160
+      ]
+    },
+    {
+      "parameters": {
+        "content": "# ₹0 Voice Agent Prototype\n\n**What is free:** local n8n, browser speech recognition, browser speech synthesis, qualification logic, scoring, transcript, and n8n execution logging.\n\n**What is intentionally excluded:** Vapi, Twilio, paid telephone calls, LLM APIs, Google Sheets credentials.\n\n## Run\n1. Activate this workflow.\n2. Open `http://localhost:5678/webhook/free-voice-agent` in Google Chrome.\n3. Allow microphone access.\n4. Complete the six-question interview.\n5. Inspect the `Structure Lead Report` node in the POST execution for structured results.\n\nThis is a browser voice prototype—not an outbound telephone dialler.",
+        "height": 500,
+        "width": 520
+      },
+      "id": "09b77aca-ce8b-4c65-a284-3dab84a020a6",
+      "name": "Read Me",
+      "type": "n8n-nodes-base.stickyNote",
+      "typeVersion": 1,
+      "position": [
+        -540,
+        -500
+      ]
+    }
+  ],
+  "connections": {
+    "Open Voice Agent": {
+      "main": [
+        [
+          {
+            "node": "Build Voice Interface",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Build Voice Interface": {
+      "main": [
+        [
+          {
+            "node": "Show Voice Agent",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Receive Qualification": {
+      "main": [
+        [
+          {
+            "node": "Structure Lead Report",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Structure Lead Report": {
+      "main": [
+        [
+          {
+            "node": "Confirm Result",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "pinData": {},
+  "settings": {
+    "executionOrder": "v1"
+  },
+  "active": false,
+  "tags": [],
+  "meta": {
+    "templateCredsSetupCompleted": true
+  }
+}
